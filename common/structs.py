@@ -32,16 +32,33 @@ class Console:
     _indent_level = 0
 
     @classmethod
-    def log(cls, *args, **kwargs):
-        print(" " * cls._indent_level, *args, **kwargs)
+    def log(
+        cls,
+        *args: object,
+        sep: str | None = " ",
+        end: str | None = "\n",
+        file=None,
+        flush: bool = True,
+        in_group: bool = True,
+        **kwargs,
+    ):
+        print(
+            (" " * cls._indent_level) if in_group else "",
+            *args,
+            sep=sep,
+            end=end,
+            file=file,
+            flush=flush,
+            **kwargs,
+        )
         return cls
 
     @classmethod
-    def group(cls, *args):
+    def group(cls, *args: object):
         return cls.log(*args)._add_indent_level(2)
 
     @classmethod
-    def grouped(cls, *console_args):
+    def grouped(cls, *console_args: str):
         def decorator(func):
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
