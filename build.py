@@ -5,8 +5,9 @@ import multiprocessing.pool
 import os
 import shutil
 import subprocess
-from pathlib import Path
 import sys
+import zipfile
+from pathlib import Path
 
 import fontTools.subset
 import fontTools.ttLib
@@ -35,6 +36,7 @@ def main():
     build_fonts()
     build_nerd_fonts()
     handle_font_folders()
+    zip_final_ttc_files()
 
 
 @Console.grouped("Preparing repo")
@@ -370,6 +372,24 @@ def font_file_to_woff2(
     )
 
     return output_file_path
+
+
+@Console.grouped("Zipping TTFs")
+def zip_final_ttc_files():
+    zip_file_path = DIST_DIR.joinpath("all-ttc.zip")
+    with zipfile.ZipFile(zip_file_path, "w", zipfile.ZIP_DEFLATED) as z:
+        for font_folder_name in os.listdir(DIST_DIR):
+            ttc_font_file_name = f"{font_folder_name}.ttc"
+            ttc_font_file = DIST_DIR.joinpath(font_folder_name).joinpath(
+                ttc_font_file_name
+            )
+
+            if not ttc_font_file.is_file():
+                continue
+
+            Console.log("Adding", ttc_font_file_name, "...", end="")
+            z.write(ttc_font_file, arcname=ttc_font_file_name)
+            Console.log("Done", in_group=False)
 
 
 if __name__ == "__main__":
