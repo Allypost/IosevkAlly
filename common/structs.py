@@ -358,6 +358,7 @@ class FontVariant:
             "font-family": font_family,
             "font-weight": self.weight,
             "font-style": self.style,
+            "font-display": CssStr("swap"),
         }
         if self.stretch:
             base_props["font-stretch"] = self.stretch
@@ -367,9 +368,9 @@ class FontVariant:
                 **base_props,
                 "unicode-range": list(map(CssStr, subset.unicode_range)),
                 "src": [
-                    {
-                        "local": font_family,
-                    },
+                    # {
+                    #     "local": font_family,
+                    # },
                     subset.file.with_relative_to_path(relative_to_path).as_dict(),
                 ],
             }
@@ -385,9 +386,9 @@ class FontVariant:
                     )
                 ),
                 "src": [
-                    {
-                        "local": font_family,
-                    },
+                    # {
+                    #     "local": font_family,
+                    # },
                     self.file.with_relative_to_path(relative_to_path).as_dict(),
                 ],
             }
