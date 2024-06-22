@@ -17,8 +17,8 @@ FONT_WEIGHT_NAME_TO_VALUE = {
     "extralight": 200,
     "light": 300,
     "normal": 400,
-    "regular": 400,
     "italic": 400,
+    "regular": 400,
     "medium": 500,
     "semibold": 600,
     "bold": 700,
@@ -26,6 +26,8 @@ FONT_WEIGHT_NAME_TO_VALUE = {
     "black": 900,
     "heavy": 900,
 }
+
+FONT_WEIGHT_VALUE_TO_NAME = {v: k for k, v in FONT_WEIGHT_NAME_TO_VALUE.items()}
 
 
 class Console:
@@ -353,6 +355,7 @@ class FontVariant:
         font_family: str | CssStr,
         relative_to_path: str | Path | None = None,
         with_main_font: bool = False,
+        with_subsets: bool = True,
     ):
         base_props = {
             "font-family": font_family,
@@ -363,18 +366,26 @@ class FontVariant:
         if self.stretch:
             base_props["font-stretch"] = self.stretch
 
-        for subset in self.subsets:
-            props = {
-                **base_props,
-                "unicode-range": list(map(CssStr, subset.unicode_range)),
-                "src": [
-                    # {
-                    #     "local": font_family,
-                    # },
-                    subset.file.with_relative_to_path(relative_to_path).as_dict(),
-                ],
-            }
-            yield self._to_font_face(props)
+        font_family_with_weight = FONT_WEIGHT_VALUE_TO_NAME.get(self.weight)
+        font_family_with_weight = (
+            f"{font_family} {font_family_with_weight.title()}"
+            if font_family_with_weight and font_family_with_weight != "regular"
+            else font_family
+        )
+
+        if with_subsets:
+            for subset in self.subsets:
+                props = {
+                    **base_props,
+                    "unicode-range": list(map(CssStr, subset.unicode_range)),
+                    "src": [
+                        {
+                            "local": font_family_with_weight,
+                        },
+                        subset.file.with_relative_to_path(relative_to_path).as_dict(),
+                    ],
+                }
+                yield self._to_font_face(props)
 
         if with_main_font:
             props = {
@@ -386,9 +397,9 @@ class FontVariant:
                     )
                 ),
                 "src": [
-                    # {
-                    #     "local": font_family,
-                    # },
+                    {
+                        "local": font_family_with_weight,
+                    },
                     self.file.with_relative_to_path(relative_to_path).as_dict(),
                 ],
             }
@@ -400,28 +411,6 @@ class FontVariant:
         s += ";".join([f"{k}:{css_stringify(v)}" for k, v in props.items()])
         s += "}"
         return s
-
-    def to_css_font_face(
-        self,
-        *,
-        font_family: str | CssStr,
-        relative_to_path: str | Path | None = None,
-    ):
-        props = {
-            "font-family": font_family,
-            "font-weight": self.weight,
-            "font-style": self.style,
-            "src": [
-                {
-                    "local": font_family,
-                },
-                self.file.with_relative_to_path(relative_to_path).as_dict(),
-            ],
-        }
-        if self.stretch:
-            props["font-stretch"] = self.stretch
-
-        return self._to_font_face(props)
 
     @classmethod
     def from_file_path(cls, font_file_path: str | Path):
