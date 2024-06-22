@@ -358,7 +358,7 @@ class FontVariant:
             "font-family": font_family,
             "font-weight": self.weight,
             "font-style": self.style,
-            "font-display": CssStr("swap"),
+            # "font-display": CssStr("swap"),
         }
         if self.stretch:
             base_props["font-stretch"] = self.stretch
